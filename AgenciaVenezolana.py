@@ -1,90 +1,49 @@
 # Theodore Chu
-# February 20, 2017
+# March 4, 2017
 # For the USC Lab on Non-Democratic Politics under the direction of Erin Baggott Carter and Brett Logan Carter
 # Scrapes the Agencia Venezolana
-# Prints all contenida (content) sections
-# Use ISO-8859-1 Encoder to read the txt files
+# Prints all sections
+# Encodes in utf-8
 
-# from __future__ import division # this lets you divide numbers and get floating results
+# Dates are not used in Agencia Venezolana archive
+# Waits 5-10 minutes every 100 pages to avoid crashing the archive
+
 import math  # this lets you do math
-import re  # this lets you make string replacements: 'hi there'.replace(' there') --> 'hi'
-import os  # this lets you set system directories
+import io # this allows encoding in utf-8
 import time  # this lets you slow down your scraper so you don't crash the website =/
-import codecs  # symbols are annoying. this lets you replace them.
 import random  # this lets you draw random numbers.
 import datetime  # this lets you create a list of dates
-from datetime import timedelta  # same
 from selenium import webdriver  # the rest of these let you create your scraper
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
 
-# set your working directory
-writedir = 'C:\\Users\\Theodore\\Desktop\\Programming\\Scraping\\'
-
-
-#prompt for start date
-#prompt for end date
-#name the file out
-#load first date
-#get the number of results
-#go to the first page on the first date
-#get all links from the first page on the first date
-#go to each article from first page on first date. print to file
-#repeat for all links on first date (for loop)
-#repeat for all dates until the last date (for loop)
+# prompt for start date
+# prompt for end date
+# name the file out
+# load first date
+# get the number of results
+# go to the first page on the first date
+# get all links from the first page on the first date
+# go to each article from first page on first date. print to file
+# repeat for all links on first date (while loop)
+# repeat for all dates until the last date (while loop)
 
 startTime = time.time()
 
-url = "http://www.avn.info.ve/buscar?page=1&key="
+#url = "http://www.avn.info.ve/buscar?page=1&key="
 
 class AgenciaVenezolana(object):
     def __init__(self):
-        directory = input("Enter Directory: (ex: C:/Users/Theodore/Desktop/Programming/Scraping/). Press Enter for example:")
+        directory = input("Enter Directory: (ex: C:/Users/Theodore/Desktop/Programming/Scraping/AgenciaVenezolana/). Press Enter for example:")
         if directory == "":
-            directory = "C:/Users/Theodore/Desktop/Programming/Scraping/"
-
-        """while True:
-            try:
-                print("Enter Start Date", end=". ")
-                self.__startDate = self.getDate()
-                print("Enter End Date", end=". ")
-                self.__endDate = self.getDate()
-                if self.__startDate > self.__endDate:
-                    raise Exception("Start date must be less than end date.")
-                break
-            except Exception:
-                print("Error. Start date must be less than end date.")
-                pass"""
+            directory = "C:/Users/Theodore/Desktop/Programming/Scraping/AgenciaVenezolana/"
 
         fileOutName = input("Enter file out name. Please omit \".txt\" (ex: avs2016.txt):")
-        self.__fileOut = open(directory + fileOutName + ".txt", "a")
-        self.__fileOut2 = open(directory + fileOutName + "_utf-8.txt", "a")
+        self.__fileOut = io.open(directory + fileOutName + ".txt", "a", encoding="utf-8")
         self.__pageCounter = 0
         queryInput = input("Insert search term (if none, enter \"none\"):")
         if queryInput == "" or queryInput == "none":
             queryInput = ""
         self.__query = queryInput.strip()
         self.__driver = webdriver.Firefox()
-
-    # Dates are not needed, but they are here in case we find a way to use dates
-    """def getDate(self):
-        datebool = True
-        while datebool:
-            startdate = input("Year and Month only (ex: 20160105 for January 5, 2016):")
-            try:
-                date = datetime.datetime.strptime(startdate, "%Y%m%d")
-                return date
-            except Exception as e:
-                print("An incorrect date was inputted. Please try again. Error message:\n", e)
-                continue
-
-    def getStartDate(self):
-        return self.__startDate
-
-    def getEndDate(self):
-        return self.__endDate"""
 
     def loadFirstResultsPage(self):
         firstPage = "http://www.avn.info.ve/buscar?key=" + self.__query
@@ -119,8 +78,9 @@ class AgenciaVenezolana(object):
             try: # Some elements with tag "h2" don't have links. This gets past that
                 link = data.find_element_by_css_selector("a").get_attribute("href")
                 print(link)
-                if "contenido" in link: # Agencia Venezolana does not allow changes in article type. This filters content only
-                    linksList.append(link)
+                #if "contenido" in link: # Agencia Venezolana does not allow changes in article type. This filters content only
+                #    linksList.append(link)
+                linksList.append(link)
 
                 time.sleep(random.uniform(1, 3))
             except Exception as e:
@@ -135,8 +95,6 @@ class AgenciaVenezolana(object):
         for url in linksList:
             try:
                 print(url)
-                print(url, file=self.__fileOut)
-                print(url.encode("utf-8"), file=self.__fileOut2)
                 self.__driver.get(url)
                 time.sleep(random.uniform(1, 10))
 
@@ -145,24 +103,19 @@ class AgenciaVenezolana(object):
                 title = titleData.text
                 print(title)
                 print(title, file=self.__fileOut)
-                titleUTF = title.encode("utf-8")
-                print(titleUTF, file=self.__fileOut2)
 
                 # Date
                 dateData = self.__driver.find_element_by_class_name("fecha-hora")
                 dateText = dateData.text
                 print(dateText)
                 print(dateText, file=self.__fileOut)
-                dateUTF = dateText.encode("utf-8")
-                print(dateUTF, file=self.__fileOut2)
 
-                # Author
-                authorData = self.__driver.find_element_by_class_name("autor")
-                authorText = authorData.text
-                print(authorText)
-                print(authorText, file=self.__fileOut)
-                authorUTF = authorText.encode("utf-8")
-                print(authorUTF, file=self.__fileOut2)
+                # Author (is not needed)
+                #authorData = self.__driver.find_element_by_class_name("autor")
+                #authorText = authorData.text
+                #print(authorText)
+                #print(authorText, file=self.__fileOut)
+
 
                 # Print the story in the article
                 content = self.__driver.find_element_by_class_name("contenido")
@@ -171,15 +124,15 @@ class AgenciaVenezolana(object):
                     storyText = story.text
                     print(storyText)
                     print(storyText, file=self.__fileOut)
-                    storyTextUTF = storyText.encode("utf-8")
-                    print(storyTextUTF, file=self.__fileOut2)
+
                 self.__pageCounter += 1
                 print("Article", self.__pageCounter, "printed")
-                print("Article", self.__pageCounter, "printed", file=self.__fileOut)
-                print("Article", self.__pageCounter, "printed", file=self.__fileOut2)
                 print("\n\n************************************\n\n")
                 print("\n\n************************************\n\n", file=self.__fileOut)
-                print("\n\n************************************\n\n", file=self.__fileOut2)
+                if self.__pageCounter % 100 == 0:
+                    print("Current time:", datetime.datetime.now().time())
+                    print("Sleeping. . .")
+                    time.sleep(random.uniform(300, 600))
             except Exception as e:
                 print("Error in printing full page")
                 print(str(e))
@@ -192,11 +145,20 @@ class AgenciaVenezolana(object):
             self.__startDate = datetime.datetime.strptime(str(self.__startDate.year + 1) + "01", "%Y%m")
         return self.__startDate
 
+    def closeFile(self):
+        self.__fileOut.close()
+
+
 # Main loop
 def main():
     avs = AgenciaVenezolana()
-    avs.loadFirstResultsPage()
-    n = 0
+    startPage = input("Enter the page number to start at. Integers only. If starting from beginning, enter \"0\"")
+    if startPage == 0:
+        avs.loadFirstResultsPage()
+        n = 0
+    else:
+        n = int(startPage)
+        avs.goToNextResultsPage(n)
 
     while True: # An inequality can be used here to determine number of results and number of results pages
         print('\n#################################### Page ' + str(n) + " ####################################\n")
@@ -209,6 +171,7 @@ def main():
         avs.printFullPageText(linksList)
         n += 1
         avs.goToNextResultsPage(n)
+    avs.closeFile()
 
 
 
@@ -216,3 +179,4 @@ main()
 
 totElapsedTime = time.time() - startTime
 print("Total elapsed time: ", totElapsedTime)
+print("Current time:", datetime.datetime.now().time())
